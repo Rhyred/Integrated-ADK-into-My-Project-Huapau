@@ -1,157 +1,63 @@
-# Huawei Dashboard Setup Guide
+# Panduan Setup Proyek HuaPau
 
-## 🚀 Quick Start (Dummy Data)
+Dokumen ini menjelaskan langkah-langkah untuk menginstal, mengkonfigurasi, dan menjalankan proyek dashboard manajemen router Huawei (HuaPau).
 
-1. **Install dependencies:**
-\`\`\`bash
+## 1. Prasyarat
+
+Pastikan Anda memiliki perangkat lunak berikut terinstal di sistem Anda:
+- [Node.js](https://nodejs.org/) (versi 18.x atau lebih baru)
+## 2. Instalasi
+
+Ikuti langkah-langkah berikut untuk menyiapkan proyek di lingkungan lokal Anda.
+
+**a. Clone Repositori**
+```bash
+git clone https://github.com/Rhyred/Integrated-ADK-into-My-Project-Huapau.git
+cd Integrated-ADK-into-My-Project-Huapau
+```
+
+**b. Instal Dependensi**
+Gunakan `npm` untuk menginstal semua dependensi yang diperlukan.
+```bash
 npm install
-\`\`\`
+```
 
-2. **Start development server:**
-\`\`\`bash
+## 3. Konfigurasi Lingkungan
+
+Proyek ini memerlukan kunci API dari Google AI Studio agar chatbot dapat berfungsi.
+
+**a. Buat File `.env.local`**
+Buat file baru bernama `.env.local` di direktori root proyek.
+
+**b. Tambahkan Kunci API**
+Buka file `.env.local` dan tambahkan kunci API Google Anda dengan format berikut. Ganti `[KUNCI_API_ANDA]` dengan kunci yang Anda dapatkan dari Google AI Studio.
+
+```env
+# Kunci API Google AI untuk penggunaan di sisi server
+GOOGLE_API_KEY=[KUNCI_API_ANDA]
+
+# URL Aplikasi untuk panggilan API internal (opsional, default ke localhost:3000)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+> **Penting**: File `.env.local` sudah terdaftar di `.gitignore` untuk mencegah kunci API Anda terkirim ke repositori Git.
+
+## 4. Menjalankan Proyek
+
+Setelah instalasi dan konfigurasi selesai, jalankan server pengembangan:
+
+```bash
 npm run dev
-\`\`\`
+```
 
-3. **Access dashboard:**
-Open http://localhost:3000
+Aplikasi sekarang akan berjalan dan dapat diakses di [http://localhost:3000](http://localhost:3000).
 
-## 🔧 Real Data Configuration
+## 5. Menguji Chatbot
 
-### Step 1: Install Optional Dependencies
-
-For real SNMP monitoring:
-\`\`\`bash
-npm install net-snmp systeminformation node-ssh
-\`\`\`
-
-### Step 2: Configure Environment
-
-1. Copy `.env.example` to `.env.local`:
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
-
-2. Edit `.env.local` with your router details:
-\`\`\`bash
-# Switch to real data
-NEXT_PUBLIC_DATA_SOURCE=real
-
-# Your router IP
-HUAWEI_HOST=192.168.1.1
-
-# SNMP community (default: public)
-HUAWEI_COMMUNITY=public
-
-# Enable features
-ENABLE_SNMP=true
-ENABLE_REAL_PING=true
-ENABLE_REAL_TRACEROUTE=true
-\`\`\`
-
-### Step 3: Router Configuration
-
-#### Enable SNMP on Huawei Router:
-\`\`\`bash
-# Via CLI
-snmp-agent
-snmp-agent community read public
-snmp-agent sys-info version v2c
-\`\`\`
-
-#### Or via Web Interface:
-1. Login to router web interface
-2. Go to System → SNMP
-3. Enable SNMP v2c
-4. Set community string (default: public)
-
-### Step 4: Test Connection
-
-\`\`\`bash
-# Test SNMP connection
-snmpwalk -v2c -c public 192.168.1.1 1.3.6.1.2.1.1.1.0
-\`\`\`
-
-## 📊 Data Source Modes
-
-### 1. Dummy Mode (Default)
-\`\`\`bash
-NEXT_PUBLIC_DATA_SOURCE=dummy
-\`\`\`
-- ✅ No router required
-- ✅ Perfect for development
-- ✅ Realistic simulated data
-
-### 2. Real Mode
-\`\`\`bash
-NEXT_PUBLIC_DATA_SOURCE=real
-\`\`\`
-- ✅ Real router data via SNMP
-- ✅ Actual bandwidth monitoring
-- ⚠️ Requires router configuration
-
-### 3. Hybrid Mode
-\`\`\`bash
-NEXT_PUBLIC_DATA_SOURCE=hybrid
-\`\`\`
-- ✅ Real data when available
-- ✅ Fallback to dummy on failure
-- ✅ Best of both worlds
-
-## 🔍 Troubleshooting
-
-### SNMP Connection Issues:
-1. Check router IP and community string
-2. Verify SNMP is enabled on router
-3. Check firewall settings
-4. Test with snmpwalk command
-
-### Permission Issues:
-\`\`\`bash
-# On Linux, may need sudo for ping/traceroute
-sudo setcap cap_net_raw+ep /usr/bin/ping
-\`\`\`
-
-### Network Tools Not Working:
-- Windows: Install Windows Subsystem for Linux
-- macOS: Should work out of the box
-- Linux: Install iputils-ping and traceroute
-
-## 📱 Production Deployment
-
-### Environment Variables for Production:
-\`\`\`bash
-NEXT_PUBLIC_DATA_SOURCE=real
-HUAWEI_HOST=your_router_ip
-HUAWEI_COMMUNITY=your_snmp_community
-ENABLE_SNMP=true
-ENABLE_REAL_PING=true
-ENABLE_REAL_TRACEROUTE=true
-\`\`\`
-
-### Security Considerations:
-- Use read-only SNMP community
-- Restrict SNMP access by IP
-- Use HTTPS in production
-- Don't expose SNMP credentials in client-side code
-
-## 🎯 Feature Status
-
-| Feature | Dummy | Real | Status |
-|---------|-------|------|--------|
-| System Monitoring | ✅ | ✅ | Ready |
-| Bandwidth Charts | ✅ | ✅ | Ready |
-| Interface Status | ✅ | ✅ | Ready |
-| Network Testing | ✅ | ✅ | Ready |
-| Device Discovery | ✅ | 🚧 | In Progress |
-| Anomaly Detection | ✅ | ✅ | Ready |
-
-## 📞 Support
-
-If you encounter issues:
-1. Check the console for error messages
-2. Verify router connectivity
-3. Test SNMP manually
-4. Check environment variables
-\`\`\`
-
-Sekarang update API untuk menggunakan data source manager:
+Untuk memastikan implementasi chatbot berfungsi dengan benar:
+1. Buka aplikasi di browser Anda.
+2. Klik ikon chat di pojok kanan bawah untuk membuka widget "HuaPau Assistant".
+3. Ajukan pertanyaan yang relevan dengan data yang ditampilkan di dasbor, misalnya:
+   - *"Berapa penggunaan CPU saat ini?"*
+   - *"Bagaimana status koneksi internet?"*
+4. Chatbot seharusnya memberikan jawaban yang kontekstual berdasarkan data (simulasi) yang ada di dasbor.

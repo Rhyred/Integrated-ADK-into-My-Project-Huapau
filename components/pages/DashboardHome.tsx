@@ -7,29 +7,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Activity, Globe, Users } from "lucide-react"
 
 export default function DashboardHome() {
-  const [pingStatus, setPingStatus] = useState("Checking...")
-  const [bandwidthData, setBandwidthData] = useState({
-    download: Math.random() * 100,
-    upload: Math.random() * 50,
-  })
+  const [dashboardData, setDashboardData] = useState({
+    cpuUsage: 23,
+    memoryUsage: 45,
+    uptime: "7d 14h 23m",
+    pingStatus: "12 ms",
+    internetStatus: "Connected",
+    gateway: "192.168.1.1",
+    dns: "8.8.8.8",
+    activeDevices: {
+      total: 24,
+      hotspot: 18,
+      pppoe: 6,
+    },
+    bandwidth: {
+      download: 55.4,
+      upload: 23.8,
+    },
+    systemInfo: {
+      model: "AR2220E-S",
+      version: "V200R010C00SPC600",
+      serial: "2102351BWL10E4000123",
+      temperature: "42°C",
+      power: "Normal",
+    },
+  });
 
   useEffect(() => {
-    const pingTimer = setInterval(() => {
-      setPingStatus(`${Math.floor(Math.random() * 50 + 10)} ms`)
-    }, 5000)
+    // Simulate real-time updates
+    const timer = setInterval(() => {
+      setDashboardData(prevData => ({
+        ...prevData,
+        cpuUsage: Math.floor(Math.random() * 15 + 20), // 20-35%
+        memoryUsage: Math.floor(Math.random() * 10 + 40), // 40-50%
+        pingStatus: `${Math.floor(Math.random() * 50 + 10)} ms`,
+        bandwidth: {
+          download: Math.random() * 100,
+          upload: Math.random() * 50,
+        },
+      }));
+    }, 3000);
 
-    const bandwidthTimer = setInterval(() => {
-      setBandwidthData({
-        download: Math.random() * 100,
-        upload: Math.random() * 50,
-      })
-    }, 1000)
-
-    return () => {
-      clearInterval(pingTimer)
-      clearInterval(bandwidthTimer)
-    }
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -48,20 +68,20 @@ export default function DashboardHome() {
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-neutral-400">CPU Usage</span>
-                  <span className="text-white font-mono">23%</span>
+                  <span className="text-white font-mono">{dashboardData.cpuUsage}%</span>
                 </div>
-                <Progress value={23} className="h-2" />
+                <Progress value={dashboardData.cpuUsage} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-neutral-400">Memory Usage</span>
-                  <span className="text-white font-mono">45%</span>
+                  <span className="text-white font-mono">{dashboardData.memoryUsage}%</span>
                 </div>
-                <Progress value={45} className="h-2" />
+                <Progress value={dashboardData.memoryUsage} className="h-2" />
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-400">Uptime</span>
-                <span className="text-white font-mono">7d 14h 23m</span>
+                <span className="text-white font-mono">{dashboardData.uptime}</span>
               </div>
             </div>
           </CardContent>
@@ -78,20 +98,20 @@ export default function DashboardHome() {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-500">Connected</span>
+              <span className="text-sm text-green-500">{dashboardData.internetStatus}</span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-400">Ping to 8.8.8.8:</span>
-                <span className="text-white font-mono">{pingStatus}</span>
+                <span className="text-white font-mono">{dashboardData.pingStatus}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-400">Gateway:</span>
-                <span className="text-white font-mono">192.168.1.1</span>
+                <span className="text-white font-mono">{dashboardData.gateway}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-400">DNS:</span>
-                <span className="text-white font-mono">8.8.8.8</span>
+                <span className="text-white font-mono">{dashboardData.dns}</span>
               </div>
             </div>
           </CardContent>
@@ -106,15 +126,15 @@ export default function DashboardHome() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center">
-            <div className="text-6xl font-bold text-orange-500 font-mono mb-2">24</div>
+            <div className="text-6xl font-bold text-orange-500 font-mono mb-2">{dashboardData.activeDevices.total}</div>
             <div className="text-sm text-neutral-400">Hotspot & PPPoE Users</div>
             <div className="grid grid-cols-2 gap-4 mt-4 w-full text-xs">
               <div className="text-center">
-                <div className="text-white font-mono">18</div>
+                <div className="text-white font-mono">{dashboardData.activeDevices.hotspot}</div>
                 <div className="text-neutral-500">Hotspot</div>
               </div>
               <div className="text-center">
-                <div className="text-white font-mono">6</div>
+                <div className="text-white font-mono">{dashboardData.activeDevices.pppoe}</div>
                 <div className="text-neutral-500">PPPoE</div>
               </div>
             </div>
@@ -169,13 +189,13 @@ export default function DashboardHome() {
                   <div
                     className="w-2 bg-blue-500 transition-all duration-1000 ease-in-out"
                     style={{
-                      height: `${Math.max(5, bandwidthData.download + Math.sin(i * 0.5) * 20)}%`,
+                      height: `${Math.max(5, dashboardData.bandwidth.download + Math.sin(i * 0.5) * 20)}%`,
                     }}
                   ></div>
                   <div
                     className="w-2 bg-red-500 transition-all duration-1000 ease-in-out"
                     style={{
-                      height: `${Math.max(5, bandwidthData.upload + Math.cos(i * 0.3) * 15)}%`,
+                      height: `${Math.max(5, dashboardData.bandwidth.upload + Math.cos(i * 0.3) * 15)}%`,
                     }}
                   ></div>
                 </div>
@@ -196,8 +216,8 @@ export default function DashboardHome() {
 
             {/* Current values */}
             <div className="absolute top-4 right-4 text-right">
-              <div className="text-sm text-blue-400 font-mono">↓ {bandwidthData.download.toFixed(1)} Mbps</div>
-              <div className="text-sm text-red-400 font-mono">↑ {bandwidthData.upload.toFixed(1)} Mbps</div>
+              <div className="text-sm text-blue-400 font-mono">↓ {dashboardData.bandwidth.download.toFixed(1)} Mbps</div>
+              <div className="text-sm text-red-400 font-mono">↑ {dashboardData.bandwidth.upload.toFixed(1)} Mbps</div>
             </div>
           </div>
         </CardContent>
@@ -244,23 +264,23 @@ export default function DashboardHome() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-400">Model:</span>
-                <span className="text-white font-mono">AR2220E-S</span>
+                <span className="text-white font-mono">{dashboardData.systemInfo.model}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-400">Version:</span>
-                <span className="text-white font-mono">V200R010C00SPC600</span>
+                <span className="text-white font-mono">{dashboardData.systemInfo.version}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-400">Serial:</span>
-                <span className="text-white font-mono">2102351BWL10E4000123</span>
+                <span className="text-white font-mono">{dashboardData.systemInfo.serial}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-400">Temperature:</span>
-                <span className="text-white font-mono">42°C</span>
+                <span className="text-white font-mono">{dashboardData.systemInfo.temperature}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-400">Power:</span>
-                <span className="text-green-500 font-mono">Normal</span>
+                <span className="text-green-500 font-mono">{dashboardData.systemInfo.power}</span>
               </div>
             </div>
           </CardContent>

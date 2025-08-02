@@ -8,10 +8,11 @@ import Header from "./Header"
 import FloatingChatWidget from "../chat/FloatingChatWidget"
 
 interface DashboardLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
+  chatContext?: any; // Make it optional for now
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, chatContext }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const router = useRouter()
 
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </div>
-      <FloatingChatWidget />
+      <FloatingChatWidget chatContext={chatContext} />
     </div>
   )
 }

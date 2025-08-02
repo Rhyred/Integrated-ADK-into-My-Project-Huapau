@@ -18,16 +18,63 @@ export default function HomePage() {
     cpu: 23,
     memory: 45,
     temperature: 42,
-    bandwidth: { download: 0, upload: 0 },
     latency: 15,
     packetLoss: 0,
-  })
-  const [networkStats, setNetworkStats] = useState({
-    totalTraffic: 1.2, // TB
-    peakBandwidth: 95.4, // Mbps
-    activeConnections: 1247,
     uptime: "15d 7h 23m",
-  })
+    loadAverage: "1.2, 1.5, 1.8",
+    cores: 4,
+    memoryUsed: "0.9GB",
+    memoryTotal: "2GB",
+    bandwidth: { download: 0, upload: 0 }, // Re-add bandwidth
+  });
+
+  const [networkStats, setNetworkStats] = useState({
+    status: "Connected",
+    gateway: "192.168.1.1",
+    dnsPrimary: "8.8.8.8",
+    dnsSecondary: "8.8.4.4",
+    totalTrafficTB: 1.2,
+    peakBandwidthMbps: 95.4,
+    activeConnections: 1247,
+    interfacesUp: "4/4",
+    dhcpLeases: "18/100",
+    firewallRules: 127,
+    vpnTunnels: "2/5",
+    activeDevices: {
+      total: 24,
+      wireless: 18,
+      wired: 6,
+    },
+  });
+
+  const [deviceInfo, setDeviceInfo] = useState({
+    model: "Huawei AR2220E-S",
+    softwareVersion: "V200R010C00SPC600",
+    serialNumber: "2102351BWL10E4000123",
+    macAddress: "00:11:22:33:44:55",
+    bootTime: "2024-01-15 08:30:45",
+    lastConfigSave: "2024-01-28 14:22:10",
+    powerStatus: "Normal",
+  });
+
+  const [interfaces, setInterfaces] = useState([
+    {
+      name: "Ethernet 0/0/1",
+      status: "UP",
+      speed: "1000M",
+      ip: "192.168.1.1",
+      traffic: "↑ 45.2M ↓ 123.8M",
+    },
+    {
+      name: "Ethernet 0/0/2",
+      status: "UP",
+      speed: "1000M",
+      ip: "10.0.0.1",
+      traffic: "↑ 12.1M ↓ 67.4M",
+    },
+    { name: "WLAN 2.4GHz", status: "UP", speed: "300M", ip: "192.168.2.1", traffic: "↑ 8.7M ↓ 34.2M" },
+    { name: "WLAN 5GHz", status: "UP", speed: "867M", ip: "192.168.5.1", traffic: "↑ 23.4M ↓ 89.1M" },
+  ]);
 
   const refreshData = async () => {
     setIsLoading(true)
@@ -41,17 +88,21 @@ export default function HomePage() {
         temperature: Math.max(35, Math.min(80, prev.temperature + (Math.random() - 0.5) * 5)),
         latency: Math.max(5, Math.min(200, prev.latency + (Math.random() - 0.5) * 20)),
         packetLoss: Math.max(0, Math.min(10, prev.packetLoss + (Math.random() - 0.5) * 2)),
-      }))
+        bandwidth: {
+          download: Math.random() * 100,
+          upload: Math.random() * 50,
+        },
+      }));
 
       setNetworkStats((prev) => ({
         ...prev,
-        totalTraffic: prev.totalTraffic + Math.random() * 0.01,
-        peakBandwidth: Math.max(50, Math.min(100, prev.peakBandwidth + (Math.random() - 0.5) * 5)),
+        totalTrafficTB: prev.totalTrafficTB + Math.random() * 0.01,
+        peakBandwidthMbps: Math.max(50, Math.min(100, prev.peakBandwidthMbps + (Math.random() - 0.5) * 5)),
         activeConnections: Math.max(
           800,
           Math.min(2000, prev.activeConnections + Math.floor((Math.random() - 0.5) * 50)),
         ),
-      }))
+      }));
     } catch (error) {
       console.error("Failed to refresh data:", error)
     } finally {
@@ -59,8 +110,10 @@ export default function HomePage() {
     }
   }
 
+  const chatContext = { ...systemData, ...networkStats, deviceInfo, interfaces };
+
   return (
-    <DashboardLayout>
+    <DashboardLayout chatContext={chatContext}>
       <div className="p-4 md:p-6 space-y-6">
         {/* Auto Refresh Timer */}
         <AutoRefreshTimer onRefresh={refreshData} isLoading={isLoading} />
@@ -123,8 +176,8 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-orange-600 tracking-wider font-medium">ACTIVE DEVICES</p>
-                    <p className="text-2xl font-bold text-slate-900 font-mono mt-1">24</p>
-                    <p className="text-xs text-slate-600">18 Wireless, 6 Wired</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono mt-1">{networkStats.activeDevices.total}</p>
+                    <p className="text-xs text-slate-600">{networkStats.activeDevices.wireless} Wireless, {networkStats.activeDevices.wired} Wired</p>
                   </div>
                   <div className="flex flex-col items-end">
                     <Users className="w-8 h-8 text-orange-500" />
@@ -145,7 +198,7 @@ export default function HomePage() {
                   <div>
                     <p className="text-xs text-purple-600 tracking-wider font-medium">DATA TRANSFER</p>
                     <p className="text-2xl font-bold text-slate-900 font-mono mt-1">
-                      {networkStats.totalTraffic.toFixed(1)}TB
+                      {networkStats.totalTrafficTB.toFixed(1)}TB
                     </p>
                     <p className="text-xs text-slate-600">This month</p>
                   </div>
@@ -180,8 +233,8 @@ export default function HomePage() {
                   </div>
                   <Progress value={systemData.cpu} className="h-2" />
                   <div className="flex justify-between text-xs text-neutral-500 mt-1">
-                    <span>Load Average: 1.2, 1.5, 1.8</span>
-                    <span>4 Cores</span>
+                    <span>Load Average: {systemData.loadAverage}</span>
+                    <span>{systemData.cores} Cores</span>
                   </div>
                 </div>
                 <div>
@@ -191,8 +244,8 @@ export default function HomePage() {
                   </div>
                   <Progress value={systemData.memory} className="h-2" />
                   <div className="flex justify-between text-xs text-neutral-500 mt-1">
-                    <span>Used: {((systemData.memory * 20.48) / 100).toFixed(1)}GB</span>
-                    <span>Total: 2GB</span>
+                    <span>Used: {systemData.memoryUsed}</span>
+                    <span>Total: {systemData.memoryTotal}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-2">
@@ -202,7 +255,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <div className="text-xs text-neutral-400">Uptime</div>
-                    <div className="text-lg font-mono text-white">{networkStats.uptime}</div>
+                    <div className="text-lg font-mono text-white">{systemData.uptime}</div>
                   </div>
                 </div>
               </CardContent>
@@ -228,15 +281,15 @@ export default function HomePage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Gateway:</span>
-                    <span className="text-white font-mono">192.168.1.1</span>
+                    <span className="text-white font-mono">{networkStats.gateway}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">DNS Primary:</span>
-                    <span className="text-white font-mono">8.8.8.8</span>
+                    <span className="text-white font-mono">{networkStats.dnsPrimary}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">DNS Secondary:</span>
-                    <span className="text-white font-mono">8.8.4.4</span>
+                    <span className="text-white font-mono">{networkStats.dnsSecondary}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Ping to 8.8.8.8:</span>
@@ -268,7 +321,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-400 font-mono">
-                      {networkStats.peakBandwidth.toFixed(0)}
+                      {networkStats.peakBandwidthMbps.toFixed(0)}
                     </div>
                     <div className="text-xs text-neutral-400">Peak Bandwidth (Mbps)</div>
                   </div>
@@ -282,19 +335,19 @@ export default function HomePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Interfaces Up:</span>
-                    <span className="text-green-400 font-mono">4/4</span>
+                    <span className="text-green-400 font-mono">{networkStats.interfacesUp}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">DHCP Leases:</span>
-                    <span className="text-white font-mono">18/100</span>
+                    <span className="text-white font-mono">{networkStats.dhcpLeases}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Firewall Rules:</span>
-                    <span className="text-white font-mono">127</span>
+                    <span className="text-white font-mono">{networkStats.firewallRules}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">VPN Tunnels:</span>
-                    <span className="text-white font-mono">2/5</span>
+                    <span className="text-white font-mono">{networkStats.vpnTunnels}</span>
                   </div>
                 </div>
               </CardContent>
@@ -326,24 +379,7 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {[
-                    {
-                      name: "Ethernet 0/0/1",
-                      status: "UP",
-                      speed: "1000M",
-                      ip: "192.168.1.1",
-                      traffic: "↑ 45.2M ↓ 123.8M",
-                    },
-                    {
-                      name: "Ethernet 0/0/2",
-                      status: "UP",
-                      speed: "1000M",
-                      ip: "10.0.0.1",
-                      traffic: "↑ 12.1M ↓ 67.4M",
-                    },
-                    { name: "WLAN 2.4GHz", status: "UP", speed: "300M", ip: "192.168.2.1", traffic: "↑ 8.7M ↓ 34.2M" },
-                    { name: "WLAN 5GHz", status: "UP", speed: "867M", ip: "192.168.5.1", traffic: "↑ 23.4M ↓ 89.1M" },
-                  ].map((iface, index) => (
+                  {interfaces.map((iface, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div
@@ -386,32 +422,32 @@ export default function HomePage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Model:</span>
-                    <span className="text-white font-mono">Huawei AR2220E-S</span>
+                    <span className="text-white font-mono">{deviceInfo.model}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Software Version:</span>
-                    <span className="text-white font-mono">V200R010C00SPC600</span>
+                    <span className="text-white font-mono">{deviceInfo.softwareVersion}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Serial Number:</span>
-                    <span className="text-white font-mono">2102351BWL10E4000123</span>
+                    <span className="text-white font-mono">{deviceInfo.serialNumber}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">MAC Address:</span>
-                    <span className="text-white font-mono">00:11:22:33:44:55</span>
+                    <span className="text-white font-mono">{deviceInfo.macAddress}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Boot Time:</span>
-                    <span className="text-white font-mono">2024-01-15 08:30:45</span>
+                    <span className="text-white font-mono">{deviceInfo.bootTime}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Last Config Save:</span>
-                    <span className="text-white font-mono">2024-01-28 14:22:10</span>
+                    <span className="text-white font-mono">{deviceInfo.lastConfigSave}</span>
                   </div>
                   <div className="pt-2 border-t border-neutral-700">
                     <div className="flex justify-between text-sm">
                       <span className="text-neutral-400">Power Status:</span>
-                      <Badge className="bg-green-500/20 text-green-500">Normal</Badge>
+                      <Badge className="bg-green-500/20 text-green-500">{deviceInfo.powerStatus}</Badge>
                     </div>
                   </div>
                 </div>

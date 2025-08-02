@@ -15,7 +15,7 @@ interface Message {
   timestamp: Date
 }
 
-export default function FloatingChatWidget() {
+export default function FloatingChatWidget({ chatContext }: { chatContext?: any }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [message, setMessage] = useState("")
@@ -59,8 +59,6 @@ export default function FloatingChatWidget() {
     setMessage("");
     setIsTyping(true);
 
-    const apiKey = "AIzaSyCrdMdd12b-ICL-hcLTG3d6RFoAiK4vNmw";
-
     try {
       const response = await fetch("/api/ai/google", {
         method: "POST",
@@ -69,9 +67,7 @@ export default function FloatingChatWidget() {
         },
         body: JSON.stringify({
           message: message,
-          // Note: Context is currently empty. This can be expanded later.
-          context: {},
-          apiKey: apiKey,
+          context: chatContext,
         }),
       });
 
